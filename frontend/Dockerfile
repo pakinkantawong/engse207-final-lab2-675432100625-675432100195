@@ -1,9 +1,5 @@
-FROM node:20-alpine
-WORKDIR /app
-COPY package.json ./
-COPY index.js ./
-COPY index.html ./
-COPY logs.html ./
-COPY config.js ./
-EXPOSE 8080
-CMD ["node", "index.js"]
+FROM nginx:alpine
+
+COPY index.html /usr/share/nginx/html/index.html
+COPY logs.html /usr/share/nginx/html/logs.html
+COPY config.js /usr/share/nginx/html/config.js
