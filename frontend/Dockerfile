@@ -2,6 +2,8 @@ FROM nginx:alpine
 
 COPY index.html /usr/share/nginx/html/index.html
 COPY profile.html /usr/share/nginx/html/profile.html
+COPY profile-editor.html /usr/share/nginx/html/profile-editor.html
+COPY tasks.html /usr/share/nginx/html/tasks.html
 COPY config.js /usr/share/nginx/html/config.js
 COPY nginx.conf /etc/nginx/nginx.conf
 

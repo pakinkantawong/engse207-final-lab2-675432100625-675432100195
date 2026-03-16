@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TaskFlow Profile + Tasks</title>
+  <title>TaskFlow Task Service</title>
   <style>
     :root {
       --bg: #0b0f17;
-      --bg2: #101827;
+      --bg2: #121927;
       --panel: #151f30;
-      --line: #283954;
+      --line: #2a3b58;
       --text: #e8eff9;
-      --muted: #9aabcb;
-      --ok: #33b67a;
-      --err: #db6f6f;
+      --muted: #9badca;
+      --brand: #5aa7ff;
+      --ok: #35b879;
       --warn: #d8a449;
+      --err: #da7272;
       --radius: 14px;
     }
 
@@ -25,8 +26,8 @@
       font-family: "Segoe UI", "Noto Sans Thai", Tahoma, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at 10% 12%, #1a2540 0%, transparent 35%),
-        radial-gradient(circle at 90% 16%, #16233b 0%, transparent 32%),
+        radial-gradient(circle at 10% 10%, #1b2a48 0%, transparent 36%),
+        radial-gradient(circle at 85% 18%, #16243d 0%, transparent 34%),
         linear-gradient(180deg, var(--bg), var(--bg2));
       padding: 16px;
     }
@@ -39,7 +40,7 @@
     }
 
     .card {
-      background: linear-gradient(180deg, rgba(21, 31, 48, 0.95), rgba(14, 22, 35, 0.95));
+      background: linear-gradient(180deg, rgba(21, 31, 48, 0.95), rgba(15, 23, 36, 0.95));
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: 0 16px 34px rgba(2, 7, 14, 0.45);
@@ -49,115 +50,51 @@
     .top {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       gap: 10px;
       flex-wrap: wrap;
-      align-items: center;
     }
 
-    h1, h2, h3, p { margin: 0; }
+    h1, h2, p { margin: 0; }
     h1 { font-size: 26px; }
 
-    .muted { color: var(--muted); line-height: 1.6; font-size: 14px; }
+    .muted { color: var(--muted); font-size: 14px; line-height: 1.65; }
 
     .chip-row,
-    .actions,
-    .actions-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
     .chip {
       border: 1px solid #30425f;
       border-radius: 999px;
-      background: #0f1829;
-      color: #a9bddf;
+      background: #101a2b;
+      color: #abc0e1;
       padding: 6px 10px;
       font-size: 12px;
     }
 
-    .chip.ok { background: rgba(51, 182, 122, 0.16); color: #90e2b6; border-color: rgba(51, 182, 122, 0.35); }
-    .chip.err { background: rgba(219, 111, 111, 0.16); color: #f1bbbb; border-color: rgba(219, 111, 111, 0.35); }
+    .chip.ok { background: rgba(53, 184, 121, 0.16); color: #95e2b9; border-color: rgba(53, 184, 121, 0.35); }
+    .chip.warn { background: rgba(216, 164, 73, 0.14); color: #f2cf95; border-color: rgba(216, 164, 73, 0.35); }
+    .chip.err { background: rgba(218, 114, 114, 0.16); color: #f0bebd; border-color: rgba(218, 114, 114, 0.35); }
 
     .btn {
-      border: 1px solid #30425f;
+      border: 1px solid #314462;
       border-radius: 10px;
-      text-decoration: none;
       background: #101b2e;
-      color: #d8e6fb;
+      color: #dce8fb;
+      text-decoration: none;
       padding: 9px 12px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
     }
 
-    .btn.primary { background: #193252; border-color: #335f97; }
-    .btn.danger { background: rgba(219, 111, 111, 0.12); color: #f0b9b9; border-color: rgba(219, 111, 111, 0.35); }
+    .btn.primary { background: #17345a; border-color: #356aa8; }
+    .btn.danger { background: rgba(218, 114, 114, 0.12); color: #f0b9b9; border-color: rgba(218, 114, 114, 0.35); }
 
-    .profile-grid {
+    .grid {
       display: grid;
-      grid-template-columns: 30% 70%;
+      grid-template-columns: 380px 1fr;
       gap: 14px;
-    }
-
-    .tasks-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .section-title {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 18px;
-    }
-
-    .section-icon {
-      width: 14px;
-      height: 14px;
-      border-radius: 4px;
-      background: linear-gradient(135deg, #5f7df0, #89a0f8);
-      border: 1px solid rgba(40, 66, 156, 0.25);
-      flex: 0 0 auto;
-    }
-
-    .avatar {
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      border: 2px solid #314666;
-      background: #0d1626;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      font-size: 42px;
-      font-weight: 800;
-      color: #6baeff;
-      margin-top: 14px;
-    }
-
-    .avatar img { width: 100%; height: 100%; object-fit: cover; display: none; }
-    .avatar.has-image img { display: block; }
-    .avatar.has-image span { display: none; }
-
-    .list { display: grid; gap: 10px; margin-top: 12px; }
-
-    .item {
-      border: 1px solid #2a3b58;
-      border-radius: 10px;
-      background: #101a2c;
-      padding: 10px;
-    }
-
-    .item strong { display: block; font-size: 17px; margin-bottom: 4px; }
-
-    .bio {
-      margin-top: 12px;
-      border: 1px solid #2a3b58;
-      border-radius: 10px;
-      background: #0f1829;
-      padding: 12px;
-      line-height: 1.7;
-      min-height: 120px;
-      color: #c9d8f1;
-      white-space: pre-wrap;
     }
 
     form { display: grid; gap: 10px; }
@@ -182,17 +119,15 @@
       font: inherit;
     }
 
-    textarea {
-      min-height: 110px;
-      resize: vertical;
-      line-height: 1.6;
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #5a92f0;
+      box-shadow: 0 0 0 3px rgba(90, 146, 240, 0.2);
     }
 
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
+    textarea { min-height: 110px; resize: vertical; line-height: 1.6; }
 
     .inline-msg {
       display: none;
@@ -208,13 +143,12 @@
     .inline-msg.warn { background: rgba(216, 164, 73, 0.14); color: #f2cf95; border: 1px solid rgba(216, 164, 73, 0.35); }
     .inline-msg.err { background: rgba(218, 114, 114, 0.16); color: #f0bebd; border: 1px solid rgba(218, 114, 114, 0.35); }
 
-    .task-list {
+    .list {
       display: grid;
       gap: 10px;
       max-height: 64vh;
       overflow: auto;
       padding-right: 2px;
-      margin-top: 10px;
     }
 
     .task {
@@ -226,7 +160,13 @@
       gap: 8px;
     }
 
+    .task h3 { margin: 0; font-size: 16px; }
+
     .task .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
       color: var(--muted);
       font-size: 12px;
     }
@@ -238,9 +178,20 @@
       line-height: 1.6;
     }
 
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .actions-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
     @media (max-width: 980px) {
-      .profile-grid,
-      .tasks-grid { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -249,65 +200,26 @@
     <section class="card top">
       <div>
         <h1>Task Service</h1>
-        <p class="muted">รวมหน้าโปรไฟล์และ task service ไว้หน้าเดียว</p>
-        <div class="chip-row" style="margin-top: 10px;">
+        <p class="muted">จัดการงานผ่าน <code>/api/tasks</code> ด้วย token จาก localStorage</p>
+        <div class="chip-row" style="margin-top:10px;">
           <span class="chip" id="modeChip">mode: -</span>
-          <span class="chip" id="profileEndpointChip">profile: -</span>
-          <span class="chip" id="taskEndpointChip">tasks: -</span>
+          <span class="chip" id="endpointChip">endpoint: -</span>
           <span class="chip" id="sessionChip">session: checking...</span>
           <span class="chip" id="countChip">tasks: 0</span>
         </div>
       </div>
 
       <div class="actions">
-        <a class="btn primary" href="profile-editor.html">Edit Profile</a>
+        <a class="btn" href="profile.html">Profile</a>
+        <a class="btn" href="profile-editor.html">Edit Profile</a>
         <button type="button" class="btn danger" id="logoutButton">Logout</button>
       </div>
     </section>
 
-    <section class="profile-grid">
+    <section class="grid">
       <article class="card">
-        <h2 class="section-title"><span class="section-icon" aria-hidden="true"></span>Profile Snapshot</h2>
-        <div class="avatar" id="avatarBox">
-          <img id="avatarImage" alt="avatar preview">
-          <span id="avatarFallback">U</span>
-        </div>
-        <div class="list">
-          <div class="item">
-            <strong id="summaryName">-</strong>
-            <span class="muted">Display Name</span>
-          </div>
-          <div class="item">
-            <strong id="summaryEmail">-</strong>
-            <span class="muted">Email</span>
-          </div>
-          <div class="item">
-            <strong id="summaryUsername">-</strong>
-            <span class="muted">Username</span>
-          </div>
-          <div class="item">
-            <strong id="summaryRole">-</strong>
-            <span class="muted">Role</span>
-          </div>
-          <div class="item">
-            <strong id="summaryUpdated">-</strong>
-            <span class="muted">Updated At</span>
-          </div>
-        </div>
-        <div class="bio" id="bioBox">กำลังโหลดข้อมูล...</div>
-      </article>
-
-      <article class="card">
-        <h2 class="section-title"><span class="section-icon" aria-hidden="true"></span>Task List</h2>
-        <div class="task-list" id="taskList"></div>
-      </article>
-
-    </section>
-
-    <section class="tasks-grid">
-      <article class="card">
-        <h2 class="section-title"><span class="section-icon" aria-hidden="true"></span>Create New Task</h2>
-        <form id="createForm" style="margin-top: 10px;">
+        <h2 style="margin-bottom:10px;">Create New Task</h2>
+        <form id="createForm">
           <label>
             Title
             <input id="taskTitle" type="text" maxlength="120" placeholder="เช่น ตรวจเอกสาร API" required>
@@ -346,6 +258,11 @@
 
         <div id="inlineMsg" class="inline-msg"></div>
       </article>
+
+      <article class="card">
+        <h2 style="margin-bottom:10px;">Task List</h2>
+        <div class="list" id="taskList"></div>
+      </article>
     </section>
   </main>
 
@@ -357,19 +274,10 @@
 
     const refs = {
       modeChip: document.getElementById('modeChip'),
-      profileEndpointChip: document.getElementById('profileEndpointChip'),
-      taskEndpointChip: document.getElementById('taskEndpointChip'),
+      endpointChip: document.getElementById('endpointChip'),
       sessionChip: document.getElementById('sessionChip'),
       countChip: document.getElementById('countChip'),
-      summaryName: document.getElementById('summaryName'),
-      summaryEmail: document.getElementById('summaryEmail'),
-      summaryUsername: document.getElementById('summaryUsername'),
-      summaryRole: document.getElementById('summaryRole'),
-      summaryUpdated: document.getElementById('summaryUpdated'),
-      bioBox: document.getElementById('bioBox'),
-      avatarBox: document.getElementById('avatarBox'),
-      avatarImage: document.getElementById('avatarImage'),
-      avatarFallback: document.getElementById('avatarFallback'),
+      taskList: document.getElementById('taskList'),
       createForm: document.getElementById('createForm'),
       taskTitle: document.getElementById('taskTitle'),
       taskDescription: document.getElementById('taskDescription'),
@@ -378,7 +286,6 @@
       createButton: document.getElementById('createButton'),
       reloadButton: document.getElementById('reloadButton'),
       inlineMsg: document.getElementById('inlineMsg'),
-      taskList: document.getElementById('taskList'),
       logoutButton: document.getElementById('logoutButton')
     };
 
@@ -386,16 +293,18 @@
       token: localStorage.getItem(TOKEN_KEY) || ''
     };
 
-    function profileEndpoint() {
-      if (CONFIG.ENDPOINTS && CONFIG.ENDPOINTS.myProfile) return CONFIG.ENDPOINTS.myProfile;
-      if (CONFIG.USER_URL) return `${CONFIG.USER_URL}/api/users/me`;
-      return '/api/users/me';
+    function inferTaskServiceBaseUrl() {
+      const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+      const hostname = window.location.hostname || 'localhost';
+      return `${protocol}//${hostname}:3002`;
     }
 
     function tasksEndpoint() {
+      const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      if (isLocalHost) return '/api/tasks';
       if (CONFIG.ENDPOINTS && CONFIG.ENDPOINTS.tasks) return CONFIG.ENDPOINTS.tasks;
       if (CONFIG.TASK_URL) return `${CONFIG.TASK_URL}/api/tasks`;
-      return '/api/tasks';
+      return `${inferTaskServiceBaseUrl()}/api/tasks`;
     }
 
     function parseJsonText(text) {
@@ -440,70 +349,14 @@
       return true;
     }
 
-    function formatDate(value) {
-      if (!value) return '-';
-      const dt = new Date(value);
-      if (Number.isNaN(dt.getTime())) return '-';
-      return dt.toLocaleString('th-TH');
-    }
-
-    function fallbackInitial(profile) {
-      const source = profile.display_name || profile.username || profile.email || 'U';
-      return source.trim().charAt(0).toUpperCase() || 'U';
-    }
-
-    function updateAvatar(url, profile) {
-      refs.avatarFallback.textContent = fallbackInitial(profile || {});
-      if (!url) {
-        refs.avatarBox.classList.remove('has-image');
-        refs.avatarImage.removeAttribute('src');
-        return;
-      }
-      const image = new Image();
-      image.onload = () => {
-        refs.avatarImage.src = url;
-        refs.avatarBox.classList.add('has-image');
-      };
-      image.onerror = () => {
-        refs.avatarBox.classList.remove('has-image');
-        refs.avatarImage.removeAttribute('src');
-      };
-      image.src = url;
-    }
-
-    function applyProfile(profile) {
-      refs.summaryName.textContent = profile.display_name || profile.username || '-';
-      refs.summaryEmail.textContent = profile.email || '-';
-      refs.summaryUsername.textContent = profile.username || '-';
-      refs.summaryRole.textContent = profile.role || '-';
-      refs.summaryUpdated.textContent = formatDate(profile.updated_at);
-      refs.bioBox.textContent = profile.bio || 'ยังไม่มี bio';
-      updateAvatar(profile.avatar_url || '', profile);
-    }
-
-    async function loadProfile() {
-      if (!setSessionChip()) {
-        refs.bioBox.textContent = 'ไม่พบ token กรุณา login จากหน้า index.html ก่อน';
-        return;
-      }
-
-      try {
-        const data = await request(profileEndpoint(), {
-          headers: authHeaders()
-        });
-        applyProfile(data.profile || {});
-      } catch (error) {
-        refs.bioBox.textContent = error.message;
-      }
-    }
-
     function renderEmpty(text) {
       refs.taskList.innerHTML = `<div class="task"><div class="muted">${text}</div></div>`;
       refs.countChip.textContent = 'tasks: 0';
     }
 
-    function createSelect(options, current) {
+    function createSelect(options, current, className) {
       const select = document.createElement('select');
+      select.className = className;
       options.forEach((opt) => {
         const option = document.createElement('option');
         option.value = opt;
@@ -673,25 +526,20 @@
       }
     }
 
-    function init() {
+    function initStatic() {
       refs.modeChip.textContent = `mode: ${CONFIG.MODE || '-'}`;
-      refs.profileEndpointChip.textContent = `profile: ${profileEndpoint()}`;
-      refs.taskEndpointChip.textContent = `tasks: ${tasksEndpoint()}`;
-
+      refs.endpointChip.textContent = `endpoint: ${tasksEndpoint()}`;
       refs.logoutButton.addEventListener('click', () => {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         window.location.href = 'index.html';
       });
-
       refs.reloadButton.addEventListener('click', loadTasks);
       refs.createForm.addEventListener('submit', createTask);
-
-      loadProfile();
-      loadTasks();
     }
 
-    init();
+    initStatic();
+    loadTasks();
   </script>
 </body>
 </html>

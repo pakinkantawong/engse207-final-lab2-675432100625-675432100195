@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow Profile Editor</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --bg2: #111827;
+      --panel: #151f30;
+      --line: #2b3b57;
+      --text: #e7eef9;
+      --muted: #9cadc8;
+      --brand: #5aa7ff;
+      --ok: #35b879;
+      --warn: #d8a449;
+      --err: #da7272;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+
+    body {
+      font-family: "Segoe UI", "Noto Sans Thai", Tahoma, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, #1c2947 0%, transparent 36%),
+        radial-gradient(circle at 88% 14%, #17253e 0%, transparent 35%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      padding: 16px;
+    }
+
+    .shell {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(21, 31, 48, 0.95), rgba(15, 23, 36, 0.95));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 16px 34px rgba(2, 7, 14, 0.45);
+      padding: 16px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    h1, h2, p { margin: 0; }
+    h1 { font-size: 26px; }
+
+    .muted { color: var(--muted); line-height: 1.65; font-size: 14px; }
+
+    .chip-row,
+    .actions,
+    .meta-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .chip {
+      border: 1px solid #314462;
+      border-radius: 999px;
+      background: #0f1a2b;
+      color: #abc0e1;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .chip.ok { background: rgba(53, 184, 121, 0.16); color: #95e2b9; border-color: rgba(53, 184, 121, 0.35); }
+    .chip.warn { background: rgba(216, 164, 73, 0.14); color: #f2cf95; border-color: rgba(216, 164, 73, 0.35); }
+    .chip.err { background: rgba(218, 114, 114, 0.16); color: #f0bebd; border-color: rgba(218, 114, 114, 0.35); }
+
+    .btn {
+      border: 1px solid #314462;
+      border-radius: 10px;
+      background: #101b2e;
+      color: #dce8fb;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn.primary { background: #17345a; border-color: #356aa8; }
+    .btn.danger { background: rgba(218, 114, 114, 0.12); color: #f0b9b9; border-color: rgba(218, 114, 114, 0.35); }
+    .btn:disabled { opacity: 0.65; cursor: wait; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 14px;
+    }
+
+    .section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+    }
+
+    .section-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #5f7df0, #89a0f8);
+      border: 1px solid rgba(40, 66, 156, 0.25);
+      flex: 0 0 auto;
+    }
+
+    .avatar {
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
+      border: 2px solid #334a70;
+      background: #0f192a;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      font-size: 40px;
+      font-weight: 800;
+      color: #69aefe;
+      margin-top: 14px;
+      transition: transform 0.18s ease;
+    }
+
+    .avatar.bump { transform: scale(1.03); }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .avatar.has-image img { display: block; }
+    .avatar.has-image span { display: none; }
+
+    .list { display: grid; gap: 10px; margin-top: 12px; }
+
+    .item {
+      border: 1px solid #2a3b58;
+      border-radius: 10px;
+      background: #101a2c;
+      padding: 10px;
+    }
+
+    .item strong { display: block; font-size: 17px; margin-bottom: 4px; }
+
+    .inline-msg {
+      display: none;
+      margin-top: 10px;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .inline-msg.show { display: block; }
+    .inline-msg.ok { background: rgba(53, 184, 121, 0.16); color: #95e2b9; border: 1px solid rgba(53, 184, 121, 0.35); }
+    .inline-msg.warn { background: rgba(216, 164, 73, 0.14); color: #f2cf95; border: 1px solid rgba(216, 164, 73, 0.35); }
+    .inline-msg.err { background: rgba(218, 114, 114, 0.16); color: #f0bebd; border: 1px solid rgba(218, 114, 114, 0.35); }
+
+    form { display: grid; gap: 10px; margin-top: 10px; }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: #b7c6de;
+      font-weight: 600;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #334a6d;
+      border-radius: 10px;
+      background: #0f1829;
+      color: var(--text);
+      padding: 10px 11px;
+      font: inherit;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #5a92f0;
+      box-shadow: 0 0 0 3px rgba(90, 146, 240, 0.2);
+    }
+
+    textarea {
+      min-height: 148px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .toast-wrap {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      display: grid;
+      gap: 8px;
+      z-index: 55;
+      pointer-events: none;
+    }
+
+    .toast {
+      min-width: 220px;
+      max-width: min(360px, calc(100vw - 24px));
+      border-radius: 10px;
+      color: #fff;
+      padding: 10px 12px;
+      font-size: 13px;
+      box-shadow: 0 12px 24px rgba(1, 5, 11, 0.45);
+      animation: fadeIn 0.2s ease;
+    }
+
+    .toast.ok { background: linear-gradient(135deg, #2f925f, #3caf73); }
+    .toast.warn { background: linear-gradient(135deg, #b8842f, #d7a34a); }
+    .toast.err { background: linear-gradient(135deg, #b24d4d, #cf6262); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 930px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <main class="shell">
+    <section class="card top">
+      <div>
+        <h1>Profile Editor</h1>
+        <p class="muted">แก้ไขข้อมูลด้วย <code>PUT /api/users/me</code> และแสดงผล live preview ทันที</p>
+        <div class="chip-row" style="margin-top:10px;">
+          <span class="chip" id="modeChip">mode: -</span>
+          <span class="chip" id="endpointChip">endpoint: -</span>
+          <span class="chip warn" id="dirtyChip">ยังไม่มีการแก้ไข</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn" href="profile.html">Profile</a>
+        <button type="button" class="btn danger" id="logoutButton">Logout</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2 class="section-title"><span class="section-icon" aria-hidden="true"></span>Live Preview</h2>
+        <div class="avatar" id="avatarBox">
+          <img id="avatarImage" alt="avatar preview">
+          <span id="avatarFallback">U</span>
+        </div>
+
+        <div class="list">
+          <div class="item">
+            <strong id="summaryName">-</strong>
+            <span class="muted" id="summaryEmail">-</span>
+          </div>
+          <div class="item">
+            <strong id="summaryUsername">-</strong>
+            <span class="muted">Username</span>
+          </div>
+          <div class="item">
+            <strong id="summaryRole">-</strong>
+            <span class="muted">Role</span>
+          </div>
+          <div class="item">
+            <strong id="summaryUpdated">-</strong>
+            <span class="muted">Updated At</span>
+          </div>
+          <div class="item">
+            <strong id="bioCount">0 / 240</strong>
+            <span class="muted">Bio Count</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2 class="section-title"><span class="section-icon" aria-hidden="true"></span>แก้ไขข้อมูล</h2>
+        <p class="muted" style="margin-top:8px;">ฟิลด์ที่รองรับ: <code>display_name</code>, <code>avatar_url</code>, <code>bio</code></p>
+
+        <div id="inlineMsg" class="inline-msg"></div>
+
+        <form id="profileForm">
+          <label>
+            Display Name
+            <input id="display_name" type="text" placeholder="ชื่อที่ต้องการแสดง">
+          </label>
+
+          <label>
+            Avatar URL
+            <input id="avatar_url" type="url" placeholder="https://example.com/avatar.jpg">
+          </label>
+
+          <label>
+            Bio
+            <textarea id="bio" maxlength="240" placeholder="บอกสั้น ๆ ว่าคุณทำอะไร"></textarea>
+          </label>
+
+          <div class="meta-row">
+            <span class="chip" id="sessionChip">session: checking...</span>
+            <span class="chip" id="typingChip">พร้อมแก้ไข</span>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn primary" id="saveButton">Save Changes</button>
+            <button type="button" class="btn" id="reloadButton">Reload</button>
+            <button type="button" class="btn" id="discardButton">Discard</button>
+          </div>
+        </form>
+      </article>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script>
+    const CONFIG = window.APP_CONFIG || {};
+    const TOKEN_KEY = 'jwt_token';
+    const USER_KEY = 'auth_user';
+
+    const refs = {
+      toastWrap: document.getElementById('toastWrap'),
+      modeChip: document.getElementById('modeChip'),
+      endpointChip: document.getElementById('endpointChip'),
+      dirtyChip: document.getElementById('dirtyChip'),
+      summaryName: document.getElementById('summaryName'),
+      summaryEmail: document.getElementById('summaryEmail'),
+      summaryUpdated: document.getElementById('summaryUpdated'),
+      summaryUsername: document.getElementById('summaryUsername'),
+      summaryRole: document.getElementById('summaryRole'),
+      bioCount: document.getElementById('bioCount'),
+      sessionChip: document.getElementById('sessionChip'),
+      typingChip: document.getElementById('typingChip'),
+      inlineMsg: document.getElementById('inlineMsg'),
+      profileForm: document.getElementById('profileForm'),
+      displayName: document.getElementById('display_name'),
+      avatarUrl: document.getElementById('avatar_url'),
+      bio: document.getElementById('bio'),
+      saveButton: document.getElementById('saveButton'),
+      reloadButton: document.getElementById('reloadButton'),
+      discardButton: document.getElementById('discardButton'),
+      logoutButton: document.getElementById('logoutButton'),
+      avatarBox: document.getElementById('avatarBox'),
+      avatarImage: document.getElementById('avatarImage'),
+      avatarFallback: document.getElementById('avatarFallback')
+    };
+
+    const state = {
+      token: localStorage.getItem(TOKEN_KEY) || '',
+      snapshot: null,
+      profile: null,
+      dirty: false
+    };
+
+    function profileEndpoint() {
+      if (CONFIG.USER_URL) return `${CONFIG.USER_URL}/api/users/me`;
+      return '/api/users/me';
+    }
+
+    function toast(type, text) {
+      const node = document.createElement('div');
+      node.className = `toast ${type}`;
+      node.textContent = text;
+      refs.toastWrap.appendChild(node);
+      setTimeout(() => node.remove(), 2500);
+    }
+
+    function setInline(type, text) {
+      refs.inlineMsg.className = `inline-msg ${type}${text ? ' show' : ''}`;
+      refs.inlineMsg.textContent = text || '';
+    }
+
+    function setBusy(button, busy, idleText) {
+      button.disabled = busy;
+      button.textContent = busy ? 'กำลังดำเนินการ...' : idleText;
+    }
+
+    function parseJsonText(text) {
+      if (!text) return {};
+      try {
+        return JSON.parse(text);
+      } catch (_) {
+        return { message: text };
+      }
+    }
+
+    async function request(url, options = {}) {
+      const res = await fetch(url, options);
+      const text = await res.text();
+      const data = parseJsonText(text);
+      if (!res.ok) {
+        throw new Error(data.error || data.message || `Request failed (${res.status})`);
+      }
+      return data;
+    }
+
+    function authHeaders(withJson = false) {
+      const headers = {};
+      if (state.token) headers.Authorization = `Bearer ${state.token}`;
+      if (withJson) headers['Content-Type'] = 'application/json';
+      return headers;
+    }
+
+    function readUser() {
+      try {
+        return JSON.parse(localStorage.getItem(USER_KEY) || '{}');
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+      const dt = new Date(value);
+      if (Number.isNaN(dt.getTime())) return '-';
+      return dt.toLocaleString('th-TH');
+    }
+
+    function readForm() {
+      return {
+        display_name: refs.displayName.value.trim(),
+        avatar_url: refs.avatarUrl.value.trim(),
+        bio: refs.bio.value.trim()
+      };
+    }
+
+    function sameData(a, b) {
+      return JSON.stringify(a || {}) === JSON.stringify(b || {});
+    }
+
+    function setDirty(dirty) {
+      state.dirty = dirty;
+      if (dirty) {
+        refs.dirtyChip.textContent = 'มีการแก้ไขที่ยังไม่บันทึก';
+        refs.dirtyChip.className = 'chip warn';
+      } else {
+        refs.dirtyChip.textContent = 'ยังไม่มีการแก้ไข';
+        refs.dirtyChip.className = 'chip ok';
+      }
+    }
+
+    function syncDirtyState() {
+      if (!state.snapshot) {
+        setDirty(false);
+        return;
+      }
+      setDirty(!sameData(readForm(), state.snapshot));
+    }
+
+    function updateBioCount() {
+      const len = refs.bio.value.length;
+      refs.bioCount.textContent = `${len} / 240`;
+      if (len > 200) {
+        refs.typingChip.textContent = 'bio ใกล้ครบ limit';
+        refs.typingChip.className = 'chip warn';
+      } else {
+        refs.typingChip.textContent = 'พร้อมแก้ไข';
+        refs.typingChip.className = 'chip';
+      }
+    }
+
+    function fallbackInitial(profile) {
+      const source = profile.display_name || profile.username || profile.email || 'U';
+      return source.trim().charAt(0).toUpperCase() || 'U';
+    }
+
+    function updateAvatar(url, profile) {
+      refs.avatarFallback.textContent = fallbackInitial(profile || {});
+      if (!url) {
+        refs.avatarBox.classList.remove('has-image');
+        refs.avatarImage.removeAttribute('src');
+        return;
+      }
+
+      const image = new Image();
+      image.onload = () => {
+        refs.avatarImage.src = url;
+        refs.avatarBox.classList.add('has-image');
+        refs.avatarBox.classList.add('bump');
+        setTimeout(() => refs.avatarBox.classList.remove('bump'), 180);
+      };
+      image.onerror = () => {
+        refs.avatarBox.classList.remove('has-image');
+        refs.avatarImage.removeAttribute('src');
+      };
+      image.src = url;
+    }
+
+    function applyProfile(profile) {
+      state.profile = profile;
+      refs.summaryName.textContent = profile.display_name || profile.username || 'Unnamed';
+      refs.summaryEmail.textContent = profile.email || 'no-email';
+      refs.summaryUpdated.textContent = formatDate(profile.updated_at);
+      refs.summaryUsername.textContent = profile.username || '-';
+      refs.summaryRole.textContent = profile.role || '-';
+
+      refs.displayName.value = profile.display_name || '';
+      refs.avatarUrl.value = profile.avatar_url || '';
+      refs.bio.value = profile.bio || '';
+
+      updateAvatar(profile.avatar_url || '', profile);
+      updateBioCount();
+
+      state.snapshot = readForm();
+      setDirty(false);
+    }
+
+    async function loadProfile() {
+      if (!state.token) {
+        refs.sessionChip.textContent = 'session: not found';
+        refs.sessionChip.className = 'chip err';
+        setInline('err', 'ไม่พบ token กรุณา login จากหน้า index.html ก่อน');
+        refs.saveButton.disabled = true;
+        return;
+      }
+
+      refs.sessionChip.textContent = 'session: ready';
+      refs.sessionChip.className = 'chip ok';
+      refs.saveButton.disabled = false;
+
+      setInline('warn', 'กำลังโหลดข้อมูลโปรไฟล์...');
+      try {
+        const data = await request(profileEndpoint(), { headers: authHeaders() });
+        applyProfile(data.profile || {});
+        setInline('ok', 'โหลดข้อมูลสำเร็จ');
+      } catch (error) {
+        setInline('err', error.message);
+        toast('err', error.message);
+      }
+    }
+
+    async function saveProfile(event) {
+      event.preventDefault();
+      if (!state.token) {
+        setInline('err', 'ไม่พบ token กรุณา login ก่อน');
+        return;
+      }
+
+      setBusy(refs.saveButton, true, 'Save Changes');
+      try {
+        const payload = readForm();
+        const data = await request(profileEndpoint(), {
+          method: 'PUT',
+          headers: authHeaders(true),
+          body: JSON.stringify(payload)
+        });
+        applyProfile(data.profile || payload);
+        setInline('ok', 'บันทึกข้อมูลสำเร็จ');
+        toast('ok', 'Saved');
+      } catch (error) {
+        setInline('err', error.message);
+        toast('err', error.message);
+      } finally {
+        setBusy(refs.saveButton, false, 'Save Changes');
+      }
+    }
+
+    function discardChanges() {
+      if (!state.snapshot) return;
+      refs.displayName.value = state.snapshot.display_name || '';
+      refs.avatarUrl.value = state.snapshot.avatar_url || '';
+      refs.bio.value = state.snapshot.bio || '';
+      updateBioCount();
+      updateAvatar(state.snapshot.avatar_url || '', state.profile || {});
+      refs.summaryName.textContent = refs.displayName.value || state.profile?.username || 'Unnamed';
+      setDirty(false);
+      setInline('warn', 'คืนค่าฟอร์มกลับข้อมูลล่าสุดแล้ว');
+    }
+
+    function bindFormLiveEffects() {
+      refs.displayName.addEventListener('input', () => {
+        const value = refs.displayName.value.trim();
+        refs.summaryName.textContent = value || state.profile?.username || 'Unnamed';
+        syncDirtyState();
+      });
+
+      refs.avatarUrl.addEventListener('input', () => {
+        updateAvatar(refs.avatarUrl.value.trim(), {
+          ...state.profile,
+          display_name: refs.displayName.value,
+          username: state.profile?.username || ''
+        });
+        syncDirtyState();
+      });
+
+      refs.bio.addEventListener('input', () => {
+        updateBioCount();
+        syncDirtyState();
+      });
+    }
+
+    function bindSafetyGuard() {
+      window.addEventListener('beforeunload', (event) => {
+        if (!state.dirty) return;
+        event.preventDefault();
+        event.returnValue = '';
+      });
+    }
+
+    function initStaticInfo() {
+      refs.modeChip.textContent = `mode: ${CONFIG.MODE || '-'}`;
+      refs.endpointChip.textContent = `endpoint: ${profileEndpoint()}`;
+
+      const user = readUser();
+      if (user && (user.username || user.email)) {
+        refs.summaryName.textContent = user.username || user.email;
+        refs.summaryEmail.textContent = user.email || 'no-email';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      window.location.href = 'index.html';
+    }
+
+    refs.profileForm.addEventListener('submit', saveProfile);
+    refs.reloadButton.addEventListener('click', loadProfile);
+    refs.discardButton.addEventListener('click', discardChanges);
+    refs.logoutButton.addEventListener('click', logout);
+
+    initStaticInfo();
+    bindFormLiveEffects();
+    bindSafetyGuard();
+    updateBioCount();
+    loadProfile();
+  </script>
+</body>
+</html>
