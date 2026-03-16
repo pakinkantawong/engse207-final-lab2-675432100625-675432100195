@@ -1,8 +1,4 @@
-# TEAM_SPLIT.md
-
-## ข้อมูลกลุ่ม
-- กลุ่มที่: 8
-- รายวิชา: ENGSE207 Software Architecture
+# TEAM_SPLIT — Final Lab Set 2
 
 ## Team Members
 
@@ -15,69 +11,74 @@
 
 ## Work Allocation
 
-### Student 1: นายภาคิน กันทะวงค์
-รับผิดชอบด้าน Backend และ Infrastructure ทั้งหมด ครอบคลุม:
+### 👨‍💻 Student 1: นายภาคิน กันทะวงค์
+รับผิดชอบด้าน **Backend Development และ Infrastructure** ครอบคลุม:
 
-- **Auth Service** — พัฒนา API สำหรับ register และ login รวมถึงการออก JWT Token และจัดการ password hashing
-- **JWT Login Flow** — ออกแบบและ implement การ sign/verify Token ผ่าน `jwtUtils.js` ที่ใช้ร่วมกันระหว่าง Auth Service และ Task Service
-- **HTTPS Certificate & Nginx** — สร้าง self-signed certificate ด้วย `gen-certs.sh` และตั้งค่า `nginx.conf` ให้รองรับ SSL termination, reverse proxy routing และ rate limiting
-- **Task Service** — พัฒนา CRUD API สำหรับจัดการ Task และ implement `authMiddleware.js` เพื่อป้องกัน endpoint ด้วย JWT
-- **Log Service** — พัฒนา service สำหรับรวบรวมและ expose log การใช้งาน API ผ่าน `GET /api/logs`
-- **Frontend & Docker Compose** — พัฒนา `index.html` (Task Board + JWT Inspector) และ `logs.html` รวมถึงเขียน `docker-compose.yml` เพื่อ orchestrate ทุก container ให้ทำงานร่วมกัน
+- **Auth Service** — ขยายจาก Set 1 เพิ่ม `POST /api/auth/register` และแยก database ออกเป็น auth-db โดยเฉพาะ
+- **Task Service** — migrate จาก shared DB ไปเป็น task-db แยกต่างหาก ปรับ connection string ให้รองรับ `DATABASE_URL`
+- **User Service (ใหม่)** — พัฒนา service ใหม่ทั้งหมด ครอบคลุม `GET/PUT /api/users/me` และ `GET /api/users` (admin only) พร้อม auto-create profile logic
+- **Docker Compose** — ปรับ `docker-compose.yml` ให้รองรับ 3 databases แยกกัน (auth-db, task-db, user-db)
+- **Railway Deploy** — ตั้งค่า environment variables, DATABASE_URL reference และ deploy ทุก service บน Railway
 
-### Student 2: นายธวัชชัย สุหงษา
-รับผิดชอบด้าน Documentation และ Quality Assurance ครอบคลุม:
+### 👨‍💻 Student 2: นายธวัชชัย สุหงษา
+รับผิดชอบด้าน **Frontend, Documentation และ Quality Assurance** ครอบคลุม:
 
-- **README & Screenshots** — จัดทำ README.md แบบ 2 ภาษา (ไทย/อังกฤษ) พร้อมถ่าย screenshots ครบทั้ง 12 ขั้นตอน ตั้งแต่ docker running จนถึง rate limit
-- **Architecture Diagram** — ออกแบบ diagram แสดง request flow, JWT flow และความสัมพันธ์ระหว่าง services และ database
+- **Frontend** — ปรับ UI ให้รองรับ Register form และ User Profile page ที่เพิ่มมาใน Set 2 รวมถึงเพิ่มการอ่าน config จาก `window.APP_CONFIG` แทน hardcode URL
+- **config.js runtime injection** — เขียน script ที่ inject `AUTH_URL`, `TASK_URL`, `USER_URL` จาก environment variable ตอน container start
+- **README & Documentation** — เขียน README.md ครอบคลุม architecture, local setup, Railway deployment และ API summary ของ Set 2
+- **Testing & Screenshots** — ทดสอบ API ครบทุก endpoint ทั้ง local และ Railway production พร้อมจัดเตรียม screenshots สำหรับส่งงาน
 
 ---
 
 ## Shared Responsibilities
 
-- ทดสอบ end-to-end ร่วมกัน โดยรัน `docker compose up` แล้วทดสอบทุก endpoint ตั้งแต่ login → รับ token → ใช้ token เรียก task API → ตรวจสอบ log
-- ตรวจสอบ edge cases ร่วมกัน เช่น expired token, missing token, invalid credentials และ rate limit exceeded
+- ทดสอบ end-to-end flow ร่วมกัน: register → login → สร้าง task → ดู profile → admin listing
+- ตรวจสอบ JWT flow ข้ามทุก service ว่าใช้ `JWT_SECRET` เดียวกันและ verify ผ่าน
+- ทดสอบ Railway deployment จริงและยืนยันว่าแต่ละ service เชื่อมต่อ database ของตัวเองได้ถูกต้อง
+- ตรวจสอบ CORS configuration ให้ frontend สามารถเรียกทุก service ได้จาก Railway domain
 
 ---
 
 ## Reason for Work Split
 
-แบ่งงานตาม **technical responsibility boundary** โดยแยกระหว่างผู้สร้างระบบและผู้ตรวจสอบและเผยแพร่ระบบ
+แบ่งงานต่อเนื่องจาก Set 1 โดยยังใช้หลัก **technical responsibility boundary** เหมือนเดิม
 
-**Student 1** รับผิดชอบทุกส่วนที่ต้องเขียนโค้ดและตั้งค่าระบบ ซึ่งมีความเชื่อมโยงกันสูงมาก เช่น Auth Service ต้องออก JWT ที่ Task Service นำไปตรวจสอบ, Nginx ต้องรู้จัก port ของทุก service, และ Docker Compose ต้องเชื่อมทุกอย่างเข้าด้วยกัน การให้คนเดียวดูแลทั้งหมดช่วยลดปัญหา integration ที่อาจเกิดจากความเข้าใจที่ไม่ตรงกัน
+**Student 1** รับผิดชอบทุกส่วนที่เกี่ยวกับการ implement และ infrastructure เพราะงาน backend ทุกชิ้นมี dependency ต่อกัน โดยเฉพาะการแยก database ซึ่งต้องปรับทั้ง schema, connection string และ Docker Compose พร้อมกัน การให้คนเดียวดูแลทำให้มั่นใจได้ว่า `user_id` type ตรงกันทุก database และ JWT flow ไม่สะดุด
 
-**Student 2** รับผิดชอบงานที่ต้องเข้าใจภาพรวมของระบบทั้งหมด เพื่อสามารถสื่อสารการทำงานของระบบออกมาเป็น documentation และ diagram ที่ถูกต้องและครบถ้วน การที่ Student 2 ทำ README และ diagram ยังช่วยเป็น peer review อีกชั้นหนึ่ง เพราะหากอธิบายการทำงานไม่ได้แสดงว่ายังเข้าใจระบบไม่ครบ
+**Student 2** รับผิดชอบ frontend และ documentation ซึ่งต้องเข้าใจ API contract ของทุก service เพื่อเขียน UI และ README ได้ถูกต้อง นอกจากนี้การ test จาก perspective ของ client ช่วย catch ปัญหา CORS และ URL configuration ที่ backend อาจมองข้ามได้
 
 ---
 
 ## Integration Notes
 
-งานของทั้งสองคนเชื่อมต่อกันใน 2 จุดหลัก:
+**จุดที่ 1 — JWT Secret เป็น shared contract ทั้ง 3 services**
 
-**จุดที่ 1 — JWT Secret เป็น shared contract ระหว่าง services**
-
-Auth Service และ Task Service ต้องใช้ `JWT_SECRET` ค่าเดียวกัน ซึ่งเก็บไว้ใน `.env` และส่งผ่าน `docker-compose.yml` เป็น environment variable ให้ทั้งสอง container ทำให้ Token ที่ Auth Service ออกสามารถถูก verify โดย Task Service ได้อย่างถูกต้อง
+ทุก service ต้องใช้ `JWT_SECRET` ค่าเดียวกัน ทั้งใน local (`.env`) และ Railway (environment variable) เพื่อให้ token ที่ออกโดย Auth Service ถูก verify ได้ใน Task Service และ User Service
 
 ```
-Auth Service (sign)                Task Service (verify)
-     │                                    │
-     └── JWT_SECRET (from .env) ──────────┘
-             shared via docker-compose.yml
+Auth Service (sign)    Task Service (verify)    User Service (verify)
+      │                       │                        │
+      └────── JWT_SECRET ──────┴────────────────────────┘
+                    shared across all services
 ```
 
-**จุดที่ 2 — Nginx เป็น single entry point ที่เชื่อม frontend กับทุก service**
+**จุดที่ 2 — user_id เป็น foreign key แบบ soft reference ข้าม database**
 
-Frontend ที่ Student 1 พัฒนา (`index.html`, `logs.html`) ส่ง HTTP request ไปยัง path ต่างๆ บน origin เดียวกัน (`https://localhost`) โดย Nginx ทำหน้าที่ route request ไปยัง service ที่ถูกต้องตาม path prefix
+เนื่องจากแต่ละ service มี database แยกกัน จึงไม่สามารถใช้ FK constraint ข้าม DB ได้ แทนที่ด้วยการให้ทุก service อ่าน `user_id` จาก JWT payload (`sub`) และ validate ผ่าน token แทน
 
 ```
-https://localhost/              → frontend (index.html, logs.html)
-https://localhost/api/auth/*    → auth-service:3001
-https://localhost/api/tasks/*   → task-service:3002
-https://localhost/api/logs/*    → log-service:3003
+JWT payload: { sub: user.id, role: "member" }
+      │
+      ├──► task-service: tasks.user_id = req.user.id
+      └──► user-service: user_profiles.user_id = req.user.id
 ```
 
-ทำให้ frontend ไม่ต้องรู้ port ของแต่ละ service และยังได้ประโยชน์จาก SSL termination และ rate limiting ของ Nginx ในทุก request โดยอัตโนมัติ
+**จุดที่ 3 — Frontend อ่าน URL จาก APP_CONFIG แทน hardcode**
 
-**จุดที่ 3 — Documentation สะท้อนการทำงานจริงของระบบ**
+Frontend ไม่ hardcode URL ของแต่ละ service ใน source code แต่อ่านจาก `window.APP_CONFIG` ที่ inject ตอน container start ทำให้ใช้ code ชุดเดียวกันได้ทั้ง local และ Railway โดยไม่ต้อง rebuild image
 
-Architecture diagram และ README ที่ Student 2 จัดทำต้องสอดคล้องกับโค้ดและ config จริงที่ Student 1 เขียน ทั้งสองจึงต้องทำงานร่วมกันในขั้นตอน end-to-end testing เพื่อให้แน่ใจว่า screenshots และคำอธิบายใน README ตรงกับพฤติกรรมจริงของระบบ
+```
+Local:    AUTH_URL=http://localhost:3001
+Railway:  AUTH_URL=https://auth-service-production.up.railway.app
+          → inject → window.APP_CONFIG.AUTH_URL
+```
