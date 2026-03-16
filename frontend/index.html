@@ -1,36 +1,1163 @@
-<script src="config.js"></script>
-<script>
-const AUTH = window.APP_CONFIG.AUTH_URL;
-const TASK = window.APP_CONFIG.TASK_URL;
-const USER = window.APP_CONFIG.USER_URL;
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow Workspace</title>
+  <style>
+    :root {
+      --bg: #eef4ee;
+      --bg-accent: #dfece3;
+      --surface: rgba(255, 255, 255, 0.78);
+      --surface-strong: #ffffff;
+      --surface-muted: #f4f7f2;
+      --text: #223127;
+      --text-soft: #5d6f63;
+      --border: rgba(80, 105, 88, 0.16);
+      --primary: #4c7b64;
+      --primary-strong: #325845;
+      --secondary: #d7e8d8;
+      --danger: #b95f52;
+      --warning: #d09a41;
+      --shadow: 0 24px 60px rgba(44, 75, 53, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
 
-// Login
-async function doLogin() { ... fetch(`${AUTH}/api/auth/login`, ...) }
+    * {
+      box-sizing: border-box;
+    }
 
-// Register (ใหม่)
-async function doRegister() {
-  const { username, email, password } = getFormValues();
-  const res = await fetch(`${AUTH}/api/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password })
-  });
-  ...
-}
+    html {
+      scroll-behavior: smooth;
+    }
 
-// Load Tasks (ใช้ TASK URL)
-async function loadTasks() {
-  const res = await fetch(`${TASK}/api/tasks`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  ...
-}
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top left, rgba(210, 227, 214, 0.9), transparent 32%),
+        radial-gradient(circle at top right, rgba(235, 244, 229, 0.95), transparent 25%),
+        linear-gradient(180deg, #f6fbf4 0%, #edf4ec 52%, #e8f0e7 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
 
-// Load Profile (ใช้ USER URL)
-async function loadProfile() {
-  const res = await fetch(`${USER}/api/users/me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  ...
-}
-</script>
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      filter: blur(10px);
+      z-index: -1;
+      opacity: 0.55;
+    }
+
+    body::before {
+      top: -80px;
+      right: -100px;
+      background: rgba(201, 225, 204, 0.75);
+    }
+
+    body::after {
+      left: -120px;
+      bottom: 10%;
+      background: rgba(222, 235, 220, 0.7);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(240, 247, 239, 0.88));
+      border: 1px solid var(--border);
+      border-radius: 34px;
+      box-shadow: var(--shadow);
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr;
+      gap: 24px;
+      backdrop-filter: blur(18px);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      right: -40px;
+      top: -40px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(118, 163, 128, 0.16), rgba(209, 226, 210, 0.08));
+      transform: rotate(18deg);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: rgba(215, 232, 216, 0.8);
+      border-radius: 999px;
+      color: var(--primary-strong);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    .brand {
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 0.96;
+      margin-top: 18px;
+      max-width: 10ch;
+    }
+
+    .hero p {
+      font-size: 17px;
+      line-height: 1.75;
+      color: var(--text-soft);
+      max-width: 54ch;
+      margin: 18px 0 0;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--border);
+    }
+
+    .stat strong {
+      display: block;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    .panel {
+      background: rgba(249, 252, 248, 0.92);
+      border: 1px solid rgba(96, 123, 105, 0.14);
+      border-radius: 26px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100%;
+    }
+
+    .panel h2 {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .panel p {
+      margin: 0;
+      color: var(--text-soft);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 0.98fr 1.42fr;
+      gap: 22px;
+      margin-top: 22px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .card-header p {
+      margin: 8px 0 0;
+      color: var(--text-soft);
+      line-height: 1.6;
+    }
+
+    .pill-row,
+    .actions,
+    .toolbar,
+    .quick-links,
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .pill,
+    .chip {
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      background: var(--secondary);
+      color: var(--primary-strong);
+      border: 1px solid rgba(92, 124, 100, 0.08);
+    }
+
+    .chip[data-tone="warning"] {
+      background: rgba(244, 225, 190, 0.68);
+      color: #825812;
+    }
+
+    .chip[data-tone="danger"] {
+      background: rgba(241, 211, 205, 0.8);
+      color: #8b4337;
+    }
+
+    .chip[data-tone="success"] {
+      background: rgba(210, 231, 214, 0.82);
+      color: #355b44;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(100, 124, 106, 0.18);
+      padding: 13px 14px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    textarea {
+      min-height: 114px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(76, 123, 100, 0.5);
+      box-shadow: 0 0 0 4px rgba(76, 123, 100, 0.14);
+      transform: translateY(-1px);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(48, 73, 57, 0.12);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: wait;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #668f79);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: rgba(215, 232, 216, 0.95);
+      color: var(--primary-strong);
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: rgba(185, 95, 82, 0.14);
+      color: var(--danger);
+      border: 1px solid rgba(185, 95, 82, 0.2);
+    }
+
+    .message {
+      display: none;
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background: rgba(210, 231, 214, 0.85);
+      color: #335845;
+    }
+
+    .message.error {
+      background: rgba(241, 211, 205, 0.86);
+      color: #7d392f;
+    }
+
+    .message.info {
+      background: rgba(222, 233, 243, 0.9);
+      color: #425468;
+    }
+
+    .workspace {
+      display: none;
+      gap: 22px;
+    }
+
+    .workspace.active {
+      display: grid;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .task-item {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(97, 120, 104, 0.14);
+      border-radius: 22px;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      animation: rise 0.35s ease;
+    }
+
+    .task-top,
+    .task-meta,
+    .task-actions,
+    .mini-profile {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .task-item h3 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .task-item p {
+      margin: 0;
+      color: var(--text-soft);
+      line-height: 1.65;
+    }
+
+    .empty {
+      border: 1px dashed rgba(98, 123, 105, 0.28);
+      background: rgba(255, 255, 255, 0.62);
+      border-radius: 22px;
+      padding: 24px;
+      color: var(--text-soft);
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .admin-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .admin-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(97, 120, 104, 0.12);
+      display: grid;
+      gap: 4px;
+    }
+
+    .admin-item strong {
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    .muted {
+      color: var(--text-soft);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    footer {
+      margin-top: 18px;
+      color: var(--text-soft);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .grid,
+      .workspace.active {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100% - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      .hero,
+      .card {
+        padding: 20px;
+        border-radius: 24px;
+      }
+
+      .split,
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .task-top,
+      .task-meta,
+      .task-actions,
+      .mini-profile,
+      .card-header {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Focus on what matters</span>
+        <h1>จัดการงานให้ชัด เรียบง่าย และสบายตา</h1>
+        <p>
+          หน้านี้รวม login, register, task dashboard, profile และ admin overview ไว้ใน flow เดียว
+          เพื่อลดการสลับหน้าและทำให้ระบบใช้งานได้จริงมากขึ้นทั้งตอนเดโมและใช้งานจริง.
+        </p>
+        <div class="hero-stats">
+          <div class="stat">
+            <strong id="heroTaskCount">0</strong>
+            <span>งานทั้งหมดของคุณ</span>
+          </div>
+          <div class="stat">
+            <strong id="heroDoneCount">0</strong>
+            <span>งานที่ปิดแล้ว</span>
+          </div>
+          <div class="stat">
+            <strong id="heroProfileStatus">Guest</strong>
+            <span>สถานะผู้ใช้งาน</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div>
+          <h2 class="brand">TaskFlow Workspace</h2>
+          <p id="endpointHint">กำลังเตรียม endpoint สำหรับเชื่อมต่อบริการ</p>
+        </div>
+        <div class="pill-row">
+          <span class="pill">Auth + Task + Profile</span>
+          <span class="pill">Responsive Layout</span>
+          <span class="pill">Calm Green Theme</span>
+        </div>
+        <div class="status-bar">
+          <span class="chip" id="authStateChip" data-tone="warning">ยังไม่ได้เข้าสู่ระบบ</span>
+          <span class="chip" id="roleChip">role: -</span>
+        </div>
+        <div class="quick-links">
+          <a class="btn btn-ghost" href="#authSection">เริ่มใช้งาน</a>
+          <a class="btn btn-secondary" href="profile.html">หน้าโปรไฟล์แยก</a>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <div class="stack">
+        <article class="card" id="authSection">
+          <div class="card-header">
+            <div>
+              <h2>บัญชีผู้ใช้</h2>
+              <p>สมัครสมาชิกหรือเข้าสู่ระบบเพื่อใช้งาน task dashboard และ profile service</p>
+            </div>
+          </div>
+          <div id="authMessage" class="message"></div>
+          <form id="loginForm">
+            <div class="split">
+              <label>
+                อีเมล
+                <input type="email" id="loginEmail" placeholder="you@example.com" required>
+              </label>
+              <label>
+                รหัสผ่าน
+                <input type="password" id="loginPassword" placeholder="อย่างน้อย 6 ตัวอักษร" required>
+              </label>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn btn-primary" id="loginButton">เข้าสู่ระบบ</button>
+              <button type="button" class="btn btn-ghost" id="logoutButton">ออกจากระบบ</button>
+            </div>
+          </form>
+          <hr style="border:none;border-top:1px solid var(--border);margin:18px 0;">
+          <form id="registerForm">
+            <div class="split">
+              <label>
+                Username
+                <input type="text" id="registerUsername" placeholder="เช่น nattapon" required>
+              </label>
+              <label>
+                อีเมล
+                <input type="email" id="registerEmail" placeholder="new@user.local" required>
+              </label>
+            </div>
+            <label>
+              รหัสผ่าน
+              <input type="password" id="registerPassword" placeholder="อย่างน้อย 6 ตัวอักษร" required>
+            </label>
+            <button type="submit" class="btn btn-secondary" id="registerButton">สมัครสมาชิก</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <div>
+              <h2>ภาพรวมผู้ใช้</h2>
+              <p>ข้อมูลนี้ดึงจาก auth-service และ user-service หลัง login สำเร็จ</p>
+            </div>
+          </div>
+          <div class="mini-profile">
+            <div>
+              <h3 id="userDisplay">ผู้เยี่ยมชม</h3>
+              <p class="muted" id="userMeta">ยังไม่มีข้อมูลผู้ใช้</p>
+            </div>
+            <span class="chip" id="profileUpdatedChip">profile: -</span>
+          </div>
+          <div class="message info show" id="profileSummary">
+            Login แล้วระบบจะโหลดโปรไฟล์ให้อัตโนมัติ พร้อมทางลัดไปหน้าแก้ไขโปรไฟล์แบบแยก.
+          </div>
+          <div class="quick-links">
+            <a class="btn btn-ghost" href="profile.html">เปิดหน้าแก้ไขโปรไฟล์</a>
+          </div>
+        </article>
+      </div>
+
+      <div class="workspace active">
+        <article class="card">
+          <div class="card-header">
+            <div>
+              <h2>Task Dashboard</h2>
+              <p>เพิ่ม แก้ไข ลบ และติดตามสถานะงานจาก task-service ในพื้นที่เดียว</p>
+            </div>
+            <div class="toolbar">
+              <span class="chip" id="taskCountChip">0 งาน</span>
+              <span class="chip" id="filterChip">แสดงทุกสถานะ</span>
+            </div>
+          </div>
+
+          <div id="taskMessage" class="message"></div>
+
+          <form id="taskForm">
+            <input type="hidden" id="taskId">
+            <div class="split">
+              <label>
+                ชื่องาน
+                <input type="text" id="taskTitle" placeholder="เช่น สรุปรายงาน deployment" required>
+              </label>
+              <label>
+                สถานะ
+                <select id="taskStatus">
+                  <option value="TODO">TODO</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="DONE">DONE</option>
+                </select>
+              </label>
+            </div>
+            <div class="split">
+              <label>
+                ความสำคัญ
+                <select id="taskPriority">
+                  <option value="low">low</option>
+                  <option value="medium" selected>medium</option>
+                  <option value="high">high</option>
+                </select>
+              </label>
+              <label>
+                ตัวกรองสถานะ
+                <select id="taskFilter">
+                  <option value="ALL">ทั้งหมด</option>
+                  <option value="TODO">TODO</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="DONE">DONE</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              รายละเอียด
+              <textarea id="taskDescription" placeholder="อธิบายงานแบบสั้น ชัด และนำไปลงมือทำต่อได้"></textarea>
+            </label>
+            <div class="actions">
+              <button type="submit" class="btn btn-primary" id="taskSubmitButton">บันทึกงาน</button>
+              <button type="button" class="btn btn-ghost" id="taskResetButton">ล้างฟอร์ม</button>
+            </div>
+          </form>
+
+          <div id="taskList" class="task-list" style="margin-top: 18px;"></div>
+        </article>
+
+        <article class="card hidden" id="adminCard">
+          <div class="card-header">
+            <div>
+              <h2>Admin Overview</h2>
+              <p>แสดงรายชื่อผู้ใช้จาก `GET /api/users` เมื่อ role เป็น `admin` เท่านั้น</p>
+            </div>
+            <button class="btn btn-ghost" type="button" id="refreshUsersButton">รีเฟรช</button>
+          </div>
+          <div id="adminMessage" class="message"></div>
+          <div id="adminList" class="admin-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <footer>Frontend rebuilt for clearer flow, safer defaults, and calmer visual contrast.</footer>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const AUTH = window.APP_CONFIG.AUTH_URL;
+    const TASK = window.APP_CONFIG.TASK_URL;
+    const USER = window.APP_CONFIG.USER_URL;
+    const state = {
+      token: localStorage.getItem('jwt_token') || '',
+      user: null,
+      profile: null,
+      tasks: [],
+      filter: 'ALL'
+    };
+
+    const el = {
+      endpointHint: document.getElementById('endpointHint'),
+      authMessage: document.getElementById('authMessage'),
+      taskMessage: document.getElementById('taskMessage'),
+      adminMessage: document.getElementById('adminMessage'),
+      loginForm: document.getElementById('loginForm'),
+      registerForm: document.getElementById('registerForm'),
+      logoutButton: document.getElementById('logoutButton'),
+      loginButton: document.getElementById('loginButton'),
+      registerButton: document.getElementById('registerButton'),
+      loginEmail: document.getElementById('loginEmail'),
+      loginPassword: document.getElementById('loginPassword'),
+      registerUsername: document.getElementById('registerUsername'),
+      registerEmail: document.getElementById('registerEmail'),
+      registerPassword: document.getElementById('registerPassword'),
+      userDisplay: document.getElementById('userDisplay'),
+      userMeta: document.getElementById('userMeta'),
+      profileUpdatedChip: document.getElementById('profileUpdatedChip'),
+      profileSummary: document.getElementById('profileSummary'),
+      authStateChip: document.getElementById('authStateChip'),
+      roleChip: document.getElementById('roleChip'),
+      heroTaskCount: document.getElementById('heroTaskCount'),
+      heroDoneCount: document.getElementById('heroDoneCount'),
+      heroProfileStatus: document.getElementById('heroProfileStatus'),
+      taskCountChip: document.getElementById('taskCountChip'),
+      filterChip: document.getElementById('filterChip'),
+      taskForm: document.getElementById('taskForm'),
+      taskId: document.getElementById('taskId'),
+      taskTitle: document.getElementById('taskTitle'),
+      taskStatus: document.getElementById('taskStatus'),
+      taskPriority: document.getElementById('taskPriority'),
+      taskDescription: document.getElementById('taskDescription'),
+      taskSubmitButton: document.getElementById('taskSubmitButton'),
+      taskResetButton: document.getElementById('taskResetButton'),
+      taskFilter: document.getElementById('taskFilter'),
+      taskList: document.getElementById('taskList'),
+      adminCard: document.getElementById('adminCard'),
+      refreshUsersButton: document.getElementById('refreshUsersButton'),
+      adminList: document.getElementById('adminList')
+    };
+
+    function setMessage(node, type, text) {
+      node.className = `message ${type}${text ? ' show' : ''}`;
+      node.textContent = text || '';
+    }
+
+    function setBusy(button, busy, label) {
+      button.disabled = busy;
+      if (label) {
+        button.textContent = busy ? 'กำลังดำเนินการ...' : label;
+      }
+    }
+
+    function authHeaders(withJson = false) {
+      const headers = {};
+      if (state.token) headers.Authorization = `Bearer ${state.token}`;
+      if (withJson) headers['Content-Type'] = 'application/json';
+      return headers;
+    }
+
+    async function parseJson(res) {
+      const text = await res.text();
+      if (!text) return {};
+      try {
+        return JSON.parse(text);
+      } catch (_) {
+        return { raw: text };
+      }
+    }
+
+    function syncHero() {
+      const doneCount = state.tasks.filter((task) => task.status === 'DONE').length;
+      el.heroTaskCount.textContent = String(state.tasks.length);
+      el.heroDoneCount.textContent = String(doneCount);
+      el.heroProfileStatus.textContent = state.user ? 'Active' : 'Guest';
+      el.taskCountChip.textContent = `${state.tasks.length} งาน`;
+      el.filterChip.textContent = state.filter === 'ALL' ? 'แสดงทุกสถานะ' : `ตัวกรอง: ${state.filter}`;
+      el.authStateChip.textContent = state.user ? 'เข้าสู่ระบบแล้ว' : 'ยังไม่ได้เข้าสู่ระบบ';
+      el.authStateChip.dataset.tone = state.user ? 'success' : 'warning';
+      el.roleChip.textContent = `role: ${state.user ? state.user.role : '-'}`;
+    }
+
+    function updateUserSummary() {
+      if (!state.user) {
+        el.userDisplay.textContent = 'ผู้เยี่ยมชม';
+        el.userMeta.textContent = 'ยังไม่มีข้อมูลผู้ใช้';
+        el.profileUpdatedChip.textContent = 'profile: -';
+        el.profileSummary.textContent = 'Login แล้วระบบจะโหลดโปรไฟล์ให้อัตโนมัติ พร้อมทางลัดไปหน้าแก้ไขโปรไฟล์แบบแยก.';
+        syncHero();
+        return;
+      }
+
+      const profile = state.profile || {};
+      const name = profile.display_name || state.user.username || state.user.email;
+      el.userDisplay.textContent = name;
+      el.userMeta.textContent = `${state.user.email} • ${state.user.role}`;
+      el.profileUpdatedChip.textContent = `updated: ${profile.updated_at ? new Date(profile.updated_at).toLocaleString('th-TH') : 'new profile'}`;
+      el.profileSummary.textContent = profile.bio || 'ยังไม่มี bio, สามารถกดเข้าไปแก้ไขที่หน้าโปรไฟล์แยกได้.';
+      syncHero();
+    }
+
+    function priorityTone(priority) {
+      if (priority === 'high') return 'danger';
+      if (priority === 'medium') return 'warning';
+      return 'success';
+    }
+
+    function renderTasks() {
+      syncHero();
+      const tasks = state.filter === 'ALL'
+        ? state.tasks
+        : state.tasks.filter((task) => task.status === state.filter);
+
+      if (!state.token) {
+        el.taskList.innerHTML = '<div class="empty">กรุณาเข้าสู่ระบบก่อนจึงจะสามารถดูและจัดการงานได้</div>';
+        return;
+      }
+
+      if (tasks.length === 0) {
+        el.taskList.innerHTML = '<div class="empty">ยังไม่มีงานในมุมมองนี้ ลองเพิ่มงานใหม่หรือเปลี่ยนตัวกรองสถานะ</div>';
+        return;
+      }
+
+      el.taskList.innerHTML = tasks.map((task) => {
+        const created = task.created_at ? new Date(task.created_at).toLocaleString('th-TH') : '-';
+        const updated = task.updated_at ? new Date(task.updated_at).toLocaleString('th-TH') : '-';
+        const description = task.description ? task.description : 'ไม่มีรายละเอียดเพิ่มเติม';
+        return `
+          <article class="task-item">
+            <div class="task-top">
+              <div>
+                <h3>${escapeHtml(task.title)}</h3>
+                <p>${escapeHtml(description)}</p>
+              </div>
+              <div class="pill-row">
+                <span class="chip" data-tone="${task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'warning' : ''}">${task.status}</span>
+                <span class="chip" data-tone="${priorityTone(task.priority)}">${task.priority}</span>
+              </div>
+            </div>
+            <div class="task-meta muted">
+              <span>สร้างเมื่อ ${created}</span>
+              <span>อัปเดตล่าสุด ${updated}</span>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-secondary" type="button" onclick="editTask(${task.id})">แก้ไข</button>
+              <button class="btn btn-danger" type="button" onclick="deleteTask(${task.id})">ลบ</button>
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    function renderAdmin(users) {
+      if (!users || users.length === 0) {
+        el.adminList.innerHTML = '<div class="empty">ยังไม่มีข้อมูลผู้ใช้สำหรับแสดง</div>';
+        return;
+      }
+
+      el.adminList.innerHTML = users.map((user) => `
+        <div class="admin-item">
+          <strong>${escapeHtml(user.display_name || user.username || 'Unnamed')}</strong>
+          <span class="muted">${escapeHtml(user.email || '-')} • ${escapeHtml(user.role || '-')}</span>
+          <span class="muted">bio: ${escapeHtml(user.bio || '-')}</span>
+        </div>`).join('');
+    }
+
+    function resetTaskForm() {
+      el.taskForm.reset();
+      el.taskId.value = '';
+      el.taskStatus.value = 'TODO';
+      el.taskPriority.value = 'medium';
+      el.taskSubmitButton.textContent = 'บันทึกงาน';
+    }
+
+    function storeToken(token) {
+      state.token = token || '';
+      if (state.token) {
+        localStorage.setItem('jwt_token', state.token);
+      } else {
+        localStorage.removeItem('jwt_token');
+      }
+    }
+
+    async function fetchWithFeedback(url, options = {}) {
+      const res = await fetch(url, options);
+      const data = await parseJson(res);
+      if (!res.ok) {
+        throw new Error(data.error || data.message || `Request failed: ${res.status}`);
+      }
+      return data;
+    }
+
+    async function login(email, password) {
+      const data = await fetchWithFeedback(`${AUTH}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      storeToken(data.token);
+      state.user = data.user;
+      setMessage(el.authMessage, 'success', 'เข้าสู่ระบบสำเร็จ');
+      await hydrateWorkspace();
+    }
+
+    async function registerUser(username, email, password) {
+      const data = await fetchWithFeedback(`${AUTH}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+      setMessage(el.authMessage, 'success', `${data.message}. ตอนนี้สามารถ login ได้ทันที`);
+      el.loginEmail.value = email;
+      el.loginPassword.value = password;
+      el.registerForm.reset();
+    }
+
+    async function loadProfile() {
+      const data = await fetchWithFeedback(`${USER}/api/users/me`, {
+        headers: authHeaders()
+      });
+      state.profile = data.profile;
+      updateUserSummary();
+    }
+
+    async function loadTasks() {
+      const data = await fetchWithFeedback(`${TASK}/api/tasks`, {
+        headers: authHeaders()
+      });
+      state.tasks = Array.isArray(data.tasks) ? data.tasks : [];
+      renderTasks();
+    }
+
+    async function loadAdminUsers() {
+      if (!state.user || state.user.role !== 'admin') {
+        el.adminCard.classList.add('hidden');
+        return;
+      }
+
+      el.adminCard.classList.remove('hidden');
+      try {
+        const data = await fetchWithFeedback(`${USER}/api/users`, {
+          headers: authHeaders()
+        });
+        renderAdmin(data.users || []);
+        setMessage(el.adminMessage, 'info', `โหลดผู้ใช้ทั้งหมด ${data.count || 0} รายการ`);
+      } catch (error) {
+        renderAdmin([]);
+        setMessage(el.adminMessage, 'error', error.message);
+      }
+    }
+
+    async function loadCurrentUser() {
+      const data = await fetchWithFeedback(`${AUTH}/api/auth/me`, {
+        headers: authHeaders()
+      });
+      state.user = data.user;
+      updateUserSummary();
+    }
+
+    async function hydrateWorkspace() {
+      if (!state.token) {
+        state.user = null;
+        state.profile = null;
+        state.tasks = [];
+        updateUserSummary();
+        renderTasks();
+        el.adminCard.classList.add('hidden');
+        setMessage(el.adminMessage, 'info', '');
+        return;
+      }
+
+      try {
+        await loadCurrentUser();
+        await Promise.all([loadProfile(), loadTasks()]);
+        await loadAdminUsers();
+      } catch (error) {
+        storeToken('');
+        state.user = null;
+        state.profile = null;
+        state.tasks = [];
+        updateUserSummary();
+        renderTasks();
+        el.adminCard.classList.add('hidden');
+        setMessage(el.authMessage, 'error', `Session ใช้งานไม่ได้: ${error.message}`);
+      }
+    }
+
+    async function submitTask(event) {
+      event.preventDefault();
+      if (!state.token) {
+        setMessage(el.taskMessage, 'error', 'กรุณาเข้าสู่ระบบก่อนเพิ่มหรือแก้ไขงาน');
+        return;
+      }
+
+      const payload = {
+        title: el.taskTitle.value.trim(),
+        description: el.taskDescription.value.trim(),
+        status: el.taskStatus.value,
+        priority: el.taskPriority.value
+      };
+
+      if (!payload.title) {
+        setMessage(el.taskMessage, 'error', 'กรุณากรอกชื่องาน');
+        return;
+      }
+
+      const editingId = el.taskId.value;
+      setBusy(el.taskSubmitButton, true, editingId ? 'อัปเดตงาน' : 'บันทึกงาน');
+      try {
+        await fetchWithFeedback(`${TASK}/api/tasks${editingId ? `/${editingId}` : ''}`, {
+          method: editingId ? 'PUT' : 'POST',
+          headers: authHeaders(true),
+          body: JSON.stringify(payload)
+        });
+        setMessage(el.taskMessage, 'success', editingId ? 'อัปเดตงานสำเร็จ' : 'เพิ่มงานสำเร็จ');
+        resetTaskForm();
+        await loadTasks();
+      } catch (error) {
+        setMessage(el.taskMessage, 'error', error.message);
+      } finally {
+        setBusy(el.taskSubmitButton, false, 'บันทึกงาน');
+      }
+    }
+
+    async function deleteTask(id) {
+      if (!state.token) return;
+      const confirmed = window.confirm('ยืนยันการลบงานนี้หรือไม่');
+      if (!confirmed) return;
+      try {
+        await fetchWithFeedback(`${TASK}/api/tasks/${id}`, {
+          method: 'DELETE',
+          headers: authHeaders()
+        });
+        setMessage(el.taskMessage, 'success', 'ลบงานสำเร็จ');
+        if (String(id) === el.taskId.value) {
+          resetTaskForm();
+        }
+        await loadTasks();
+      } catch (error) {
+        setMessage(el.taskMessage, 'error', error.message);
+      }
+    }
+
+    function editTask(id) {
+      const task = state.tasks.find((item) => item.id === id);
+      if (!task) return;
+      el.taskId.value = String(task.id);
+      el.taskTitle.value = task.title || '';
+      el.taskStatus.value = task.status || 'TODO';
+      el.taskPriority.value = task.priority || 'medium';
+      el.taskDescription.value = task.description || '';
+      el.taskSubmitButton.textContent = 'อัปเดตงาน';
+      window.scrollTo({ top: el.taskForm.offsetTop - 24, behavior: 'smooth' });
+    }
+
+    function logout() {
+      storeToken('');
+      state.user = null;
+      state.profile = null;
+      state.tasks = [];
+      resetTaskForm();
+      setMessage(el.authMessage, 'info', 'ออกจากระบบแล้ว');
+      setMessage(el.taskMessage, 'info', '');
+      updateUserSummary();
+      renderTasks();
+      el.adminCard.classList.add('hidden');
+      el.adminList.innerHTML = '';
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    el.loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setBusy(el.loginButton, true, 'เข้าสู่ระบบ');
+      try {
+        await login(el.loginEmail.value.trim(), el.loginPassword.value);
+      } catch (error) {
+        setMessage(el.authMessage, 'error', error.message);
+      } finally {
+        setBusy(el.loginButton, false, 'เข้าสู่ระบบ');
+      }
+    });
+
+    el.registerForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setBusy(el.registerButton, true, 'สมัครสมาชิก');
+      try {
+        await registerUser(
+          el.registerUsername.value.trim(),
+          el.registerEmail.value.trim(),
+          el.registerPassword.value
+        );
+      } catch (error) {
+        setMessage(el.authMessage, 'error', error.message);
+      } finally {
+        setBusy(el.registerButton, false, 'สมัครสมาชิก');
+      }
+    });
+
+    el.logoutButton.addEventListener('click', logout);
+    el.taskForm.addEventListener('submit', submitTask);
+    el.taskResetButton.addEventListener('click', resetTaskForm);
+    el.taskFilter.addEventListener('change', () => {
+      state.filter = el.taskFilter.value;
+      renderTasks();
+    });
+    el.refreshUsersButton.addEventListener('click', loadAdminUsers);
+
+    window.editTask = editTask;
+    window.deleteTask = deleteTask;
+
+    el.endpointHint.textContent = `AUTH ${AUTH} | TASK ${TASK} | USER ${USER}`;
+    resetTaskForm();
+    updateUserSummary();
+    renderTasks();
+    hydrateWorkspace();
+  </script>
+</body>
+</html>

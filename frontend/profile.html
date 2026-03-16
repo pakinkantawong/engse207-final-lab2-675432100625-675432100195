@@ -2,38 +2,399 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>👤 Profile — Final Lab Set 2</title>
-  <!-- copy CSS จาก index.html -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Studio</title>
+  <style>
+    :root {
+      --bg: #edf5ee;
+      --surface: rgba(255, 255, 255, 0.82);
+      --surface-strong: #ffffff;
+      --text: #223127;
+      --text-soft: #617264;
+      --primary: #4c7b64;
+      --primary-strong: #355845;
+      --accent: #d9e8da;
+      --border: rgba(88, 113, 96, 0.15);
+      --shadow: 0 22px 60px rgba(44, 75, 53, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(214, 230, 216, 0.92), transparent 32%),
+        linear-gradient(180deg, #f5faf4 0%, #edf5ee 50%, #e6efe6 100%);
+    }
+
+    .page {
+      width: min(980px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 26px 0 42px;
+    }
+
+    .hero,
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1,
+    .card h2,
+    .card h3 {
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .hero h1 {
+      font-size: clamp(30px, 4vw, 50px);
+      line-height: 0.98;
+      max-width: 10ch;
+      margin: 12px 0;
+    }
+
+    .hero p,
+    .muted {
+      color: var(--text-soft);
+      line-height: 1.7;
+    }
+
+    .eyebrow,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--primary-strong);
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 20px;
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    .stack,
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(99, 124, 106, 0.18);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(76, 123, 100, 0.52);
+      box-shadow: 0 0 0 4px rgba(76, 123, 100, 0.12);
+    }
+
+    .actions,
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      font-weight: 700;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 20px rgba(48, 73, 57, 0.12);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #648b76);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .message {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .message.show { display: block; }
+    .message.success { background: rgba(212, 232, 216, 0.84); color: #345744; }
+    .message.error { background: rgba(241, 211, 205, 0.88); color: #7b3a31; }
+    .message.info { background: rgba(226, 234, 242, 0.92); color: #44586a; }
+
+    .summary {
+      display: grid;
+      gap: 14px;
+    }
+
+    .summary-box {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid var(--border);
+    }
+
+    .summary-box strong {
+      display: block;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page { width: min(100% - 18px, 980px); padding-top: 14px; }
+      .hero, .card { padding: 18px; border-radius: 22px; }
+    }
+  </style>
 </head>
 <body>
-<script src="config.js"></script>
-<script>
-const USER = window.APP_CONFIG.USER_URL;
-const token = localStorage.getItem('jwt_token');
+  <div class="page">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Profile Studio</span>
+        <h1>ปรับโปรไฟล์ให้พร้อมใช้งานจริง</h1>
+        <p>
+          หน้าโปรไฟล์นี้แยกจาก dashboard เพื่อให้แก้ไขข้อมูลส่วนตัวได้สะดวกขึ้น
+          โดยยังใช้ token เดียวกับหน้าแรกและเชื่อมต่อกับ `user-service` โดยตรง.
+        </p>
+        <div class="actions" style="margin-top: 16px;">
+          <a class="btn btn-secondary" href="index.html">กลับหน้า dashboard</a>
+        </div>
+      </div>
+      <div class="summary">
+        <div class="summary-box">
+          <strong id="profileHeading">ยังไม่ได้เข้าสู่ระบบ</strong>
+          <span class="muted" id="profileSubheading">กรุณา login จากหน้า dashboard ก่อน</span>
+        </div>
+        <div class="summary-box">
+          <strong id="lastUpdated">-</strong>
+          <span class="muted">เวลาที่อัปเดต profile ล่าสุด</span>
+        </div>
+      </div>
+    </section>
 
-async function loadProfile() {
-  const res  = await fetch(`${USER}/api/users/me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const data = await res.json();
-  // แสดงข้อมูล profile ใน form
-  document.getElementById('display_name').value = data.profile.display_name || '';
-  document.getElementById('bio').value           = data.profile.bio || '';
-}
+    <section class="layout">
+      <article class="card">
+        <h2>ข้อมูลบัญชี</h2>
+        <p class="muted">ข้อมูลชุดนี้แสดงจาก profile ที่ระบบสร้างไว้ให้โดยอัตโนมัติ</p>
+        <div class="summary" style="margin-top: 14px;">
+          <div class="summary-box">
+            <strong id="summaryUsername">-</strong>
+            <span class="muted">Username</span>
+          </div>
+          <div class="summary-box">
+            <strong id="summaryEmail">-</strong>
+            <span class="muted">Email</span>
+          </div>
+          <div class="summary-box">
+            <strong id="summaryRole">-</strong>
+            <span class="muted">Role</span>
+          </div>
+        </div>
+      </article>
 
-async function updateProfile() {
-  const display_name = document.getElementById('display_name').value;
-  const bio          = document.getElementById('bio').value;
-  const res = await fetch(`${USER}/api/users/me`, {
-    method: 'PUT',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ display_name, bio })
-  });
-  const data = await res.json();
-  if (res.ok) alert('อัปเดต Profile สำเร็จ!');
-}
+      <article class="card">
+        <h2>แก้ไขโปรไฟล์</h2>
+        <p class="muted">รองรับ `display_name`, `bio` และ `avatar_url` ตาม schema ของ service</p>
+        <div id="message" class="message"></div>
+        <form id="profileForm">
+          <label>
+            Display name
+            <input type="text" id="display_name" placeholder="ชื่อที่ต้องการแสดง">
+          </label>
+          <label>
+            Avatar URL
+            <input type="url" id="avatar_url" placeholder="https://example.com/avatar.jpg">
+          </label>
+          <label>
+            Bio
+            <textarea id="bio" placeholder="บอกสั้น ๆ ว่าคุณรับผิดชอบเรื่องอะไร"></textarea>
+          </label>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary" id="saveButton">บันทึกการเปลี่ยนแปลง</button>
+            <button type="button" class="btn btn-secondary" id="reloadButton">โหลดข้อมูลใหม่</button>
+          </div>
+        </form>
+      </article>
+    </section>
+  </div>
 
-loadProfile();
-</script>
+  <script src="config.js"></script>
+  <script>
+    const USER = window.APP_CONFIG.USER_URL;
+    const token = localStorage.getItem('jwt_token') || '';
+
+    const refs = {
+      message: document.getElementById('message'),
+      profileHeading: document.getElementById('profileHeading'),
+      profileSubheading: document.getElementById('profileSubheading'),
+      lastUpdated: document.getElementById('lastUpdated'),
+      summaryUsername: document.getElementById('summaryUsername'),
+      summaryEmail: document.getElementById('summaryEmail'),
+      summaryRole: document.getElementById('summaryRole'),
+      displayName: document.getElementById('display_name'),
+      avatarUrl: document.getElementById('avatar_url'),
+      bio: document.getElementById('bio'),
+      profileForm: document.getElementById('profileForm'),
+      saveButton: document.getElementById('saveButton'),
+      reloadButton: document.getElementById('reloadButton')
+    };
+
+    function setMessage(type, text) {
+      refs.message.className = `message ${type}${text ? ' show' : ''}`;
+      refs.message.textContent = text || '';
+    }
+
+    async function parseJson(res) {
+      const text = await res.text();
+      if (!text) return {};
+      try {
+        return JSON.parse(text);
+      } catch (_) {
+        return { raw: text };
+      }
+    }
+
+    async function fetchProfile() {
+      const res = await fetch(`${USER}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await parseJson(res);
+      if (!res.ok) {
+        throw new Error(data.error || 'ไม่สามารถโหลดโปรไฟล์ได้');
+      }
+      return data.profile;
+    }
+
+    function fillProfile(profile) {
+      refs.profileHeading.textContent = profile.display_name || profile.username || 'Unnamed user';
+      refs.profileSubheading.textContent = profile.bio || 'ยังไม่มี bio';
+      refs.lastUpdated.textContent = profile.updated_at ? new Date(profile.updated_at).toLocaleString('th-TH') : '-';
+      refs.summaryUsername.textContent = profile.username || '-';
+      refs.summaryEmail.textContent = profile.email || '-';
+      refs.summaryRole.textContent = profile.role || '-';
+      refs.displayName.value = profile.display_name || '';
+      refs.avatarUrl.value = profile.avatar_url || '';
+      refs.bio.value = profile.bio || '';
+    }
+
+    async function loadProfile() {
+      if (!token) {
+        setMessage('error', 'ไม่พบ token กรุณา login จากหน้า dashboard ก่อน');
+        return;
+      }
+      try {
+        const profile = await fetchProfile();
+        fillProfile(profile);
+        setMessage('info', 'โหลดข้อมูลโปรไฟล์สำเร็จ');
+      } catch (error) {
+        setMessage('error', error.message);
+      }
+    }
+
+    async function updateProfile(event) {
+      event.preventDefault();
+      if (!token) {
+        setMessage('error', 'ไม่พบ token กรุณา login จากหน้า dashboard ก่อน');
+        return;
+      }
+
+      refs.saveButton.disabled = true;
+      refs.saveButton.textContent = 'กำลังบันทึก...';
+      try {
+        const res = await fetch(`${USER}/api/users/me`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            display_name: refs.displayName.value.trim(),
+            bio: refs.bio.value.trim(),
+            avatar_url: refs.avatarUrl.value.trim()
+          })
+        });
+        const data = await parseJson(res);
+        if (!res.ok) {
+          throw new Error(data.error || 'อัปเดตโปรไฟล์ไม่สำเร็จ');
+        }
+        fillProfile(data.profile);
+        setMessage('success', 'อัปเดตโปรไฟล์สำเร็จ');
+      } catch (error) {
+        setMessage('error', error.message);
+      } finally {
+        refs.saveButton.disabled = false;
+        refs.saveButton.textContent = 'บันทึกการเปลี่ยนแปลง';
+      }
+    }
+
+    refs.profileForm.addEventListener('submit', updateProfile);
+    refs.reloadButton.addEventListener('click', loadProfile);
+    loadProfile();
+  </script>
 </body>
 </html>
