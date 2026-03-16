@@ -144,6 +144,17 @@ curl -X POST http://localhost:3001/api/auth/login \
 - `PORT=3003`
 - `NODE_ENV=production`
 
+### Frontend
+
+- Root Directory: `frontend`
+- Start Command: `npm start`
+- `PORT=8080`
+- `AUTH_URL=https://auth-service-production.up.railway.app`
+- `TASK_URL=https://task-service-production.up.railway.app`
+- `USER_URL=https://user-service-production.up.railway.app`
+
+frontend จะอ่านค่าเหล่านี้จาก environment แล้วสร้าง `config.js` ตอน runtime ให้เอง จึงไม่ต้องแก้ URL hardcode ในไฟล์ก่อน deploy
+
 ## Gateway Strategy
 
 เลือกใช้ Option A: frontend หรือ Postman เรียก URL ของแต่ละ service โดยตรง
