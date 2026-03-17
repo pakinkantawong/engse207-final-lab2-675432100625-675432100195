@@ -65,15 +65,6 @@ Browser / Postman / Frontend
                  user_profiles, logs
 ```
 
-### Gateway Strategy — Option A (Direct Call)
-
-เลือกใช้ **Option A**: frontend หรือ Postman เรียก URL ของแต่ละ service โดยตรง
-
-**เหตุผล:**
-- Deploy ง่ายที่สุด ลดขั้นตอนการตั้งค่า
-- ลดความเสี่ยงจากการตั้งค่า gateway เพิ่มระหว่างสอบ
-- เหมาะกับระบบ 3 services ที่มี endpoint ชัดเจน
-
 ### Services ที่ใช้ในระบบ
 
 | Service | Port | Database | หน้าที่ |
@@ -113,8 +104,7 @@ logs(id, level, event, user_id, message, meta, created_at)
 engse207-final-lab2-675432100625-675432100195/
 ├── README.md
 ├── TEAM_SPLIT.md
-├── INDIVIDUAL_REPORT_6743210062-5.md
-├── INDIVIDUAL_REPORT_6743210019-5.md
+├── INDIVIDUAL_REPORT_TEAM8.md
 ├── docker-compose.yml
 ├── .env.example
 ├── auth-service/
@@ -206,22 +196,19 @@ curl -X POST http://localhost:3001/api/auth/register \
   -H 'Content-Type: application/json' \
   -d '{"username":"alice","email":"alice@lab.local","password":"alice123"}'
 
-# Login
-curl -X POST http://localhost:3001/api/auth/login \
+# Login และเก็บ Token
+TOKEN=$(curl -s -X POST http://localhost:3001/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"alice@lab.local","password":"alice123"}'
-```
+  -d '{"email":"alice@lab.local","password":"alice123"}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
 
-นำ `token` ที่ได้ไปเรียก endpoints อื่น:
-
-```bash
-# Auth
+# Auth — ดูข้อมูล user ปัจจุบัน
 curl http://localhost:3001/api/auth/me -H "Authorization: Bearer $TOKEN"
 
-# Tasks
+# Tasks — ดึงรายการ task
 curl http://localhost:3002/api/tasks -H "Authorization: Bearer $TOKEN"
 
-# User Profile
+# User Profile — ดู profile ตัวเอง
 curl http://localhost:3003/api/users/me -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -229,21 +216,52 @@ curl http://localhost:3003/api/users/me -H "Authorization: Bearer $TOKEN"
 
 ---
 
-Gateway Strategy
- 
+## 9. API Summary และ Gateway Strategy
+
+### 🔐 Auth Service — `localhost:3001`
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|:---:|
+| POST | `/api/auth/register` | สมัครสมาชิก | ✅ |
+| POST | `/api/auth/login` | เข้าสู่ระบบ รับ JWT Token | ✅ |
+| GET | `/api/auth/verify` | ตรวจสอบ Token | ✅ |
+| GET | `/api/auth/me` | ดูข้อมูล user ปัจจุบัน | ✅ |
+| GET | `/api/auth/health` | Health check | ✅ |
+
+### ✅ Task Service — `localhost:3002`
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|:---:|
+| GET | `/api/tasks/health` | Health check | ✅ |
+| GET | `/api/tasks` | ดึง Task ทั้งหมด | ✅ |
+| POST | `/api/tasks` | สร้าง Task ใหม่ | ✅ |
+| PUT | `/api/tasks/:id` | แก้ไข Task | ✅ |
+| DELETE | `/api/tasks/:id` | ลบ Task | ✅ |
+
+### 👤 User Service — `localhost:3003`
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|:---:|
+| GET | `/api/users/health` | Health check | ✅ |
+| GET | `/api/users/me` | ดูข้อมูล profile ตัวเอง | ✅ |
+| PUT | `/api/users/me` | แก้ไข profile ตัวเอง | ✅ |
+| GET | `/api/users` | ดู users ทั้งหมด (admin only) | ✅ 👑 |
+
+### Gateway Strategy
+
 นักศึกษาต้องเลือก 1 วิธี — กลุ่มนี้เลือก **Option A**
- 
+
 | Option | วิธี | ความยาก | แนะนำ |
 |---|---|---|:---:|
 | **A** | Frontend เรียก URL ของแต่ละ service โดยตรงผ่าน `config.js` | ง่าย | ✅ |
 | B | Deploy Nginx เป็น 1 service บน Railway เป็น single entry point | ปานกลาง | |
 | C | ทำ API Gateway ด้วย Express ทำ proxy ไปแต่ละ service | ปานกลาง | |
- 
+
 **เหตุผลที่เลือก Option A:**
 - Deploy ง่ายที่สุด ลดขั้นตอนการตั้งค่าระหว่างสอบ
 - Frontend อ่าน URL จาก `window.APP_CONFIG` ที่ inject ตอน runtime ทำให้ใช้ image เดิมได้ทั้ง local และ Railway
 - เหมาะกับระบบ 3 services ที่มี endpoint ชัดเจนและไม่ซับซ้อน
- 
+
 ```javascript
 // frontend/public/config.js (inject ตอน container start)
 window.APP_CONFIG = {
@@ -251,62 +269,13 @@ window.APP_CONFIG = {
   TASK_URL: 'https://task-service-production.up.railway.app',
   USER_URL: 'https://user-service-production.up.railway.app'
 };
+```
 
-##  Railway Deployment
- 
-### 9.1 การตั้งค่า Environment Variables บน Railway
- 
-**Auth Service**
-```
-Root Directory: auth-service
-DATABASE_URL=${{auth-db.DATABASE_URL}}
-JWT_SECRET=your-shared-jwt-secret-here
-JWT_EXPIRES_IN=1h
-PORT=3001
-NODE_ENV=production
-```
- 
-**Task Service**
-```
-Root Directory: task-service
-DATABASE_URL=${{task-db.DATABASE_URL}}
-JWT_SECRET=your-shared-jwt-secret-here
-PORT=3002
-NODE_ENV=production
-```
- 
-**User Service**
-```
-Root Directory: user-service
-DATABASE_URL=${{user-db.DATABASE_URL}}
-JWT_SECRET=your-shared-jwt-secret-here
-PORT=3003
-NODE_ENV=production
-```
- 
-**Frontend**
-```
-Root Directory: frontend
-Start Command: npm start
-PORT=8080
-AUTH_URL=https://auth-service-production.up.railway.app
-TASK_URL=https://task-service-production.up.railway.app
-USER_URL=https://user-service-production.up.railway.app
-```
- 
-> Frontend อ่านค่า URL จาก environment แล้วสร้าง `config.js` ตอน runtime ให้เอง จึงไม่ต้องแก้ URL hardcode ในไฟล์ก่อน deploy
- 
-### 9.2 ตัวอย่าง config.js ที่ได้
- 
-```javascript
-window.APP_CONFIG = {
-  AUTH_URL: 'https://auth-service-production.up.railway.app',
-  TASK_URL: 'https://task-service-production.up.railway.app',
-  USER_URL:  'https://user-service-production.up.railway.app'
-};
-```
- 
 ---
+
+## 10. Railway Deployment
+
+### 10.1 การตั้งค่า Environment Variables บน Railway
 
 **Auth Service**
 ```
@@ -354,7 +323,7 @@ USER_URL=https://user-service-production.up.railway.app
 window.APP_CONFIG = {
   AUTH_URL: 'https://auth-service-production.up.railway.app',
   TASK_URL: 'https://task-service-production.up.railway.app',
-  USER_URL:  'https://user-service-production.up.railway.app'
+  USER_URL: 'https://user-service-production.up.railway.app'
 };
 ```
 
@@ -368,7 +337,7 @@ window.APP_CONFIG = {
 
 และรายงานรายบุคคลของสมาชิกแต่ละคนอยู่ในไฟล์:
 
-📄 [`INDIVIDUAL_REPORT_6743210062-5.md`](./INDIVIDUAL_REPORT_TEAM8.md) 
+📄 [`INDIVIDUAL_REPORT_TEAM8.md`](./INDIVIDUAL_REPORT_TEAM8.md)
 
 ---
 
@@ -414,3 +383,4 @@ window.APP_CONFIG = {
 | `task-service/src/routes/tasks.js` | CRUD task endpoints |
 | `user-service/src/routes/users.js` | User profile endpoints |
 | `frontend/public/index.html` | Task Board UI |
+| `frontend/public/config.js` | Runtime config injection |
