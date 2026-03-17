@@ -252,9 +252,61 @@ window.APP_CONFIG = {
   USER_URL: 'https://user-service-production.up.railway.app'
 };
 
-## 10. Railway Deployment
-
-### 10.1 การตั้งค่า Environment Variables บน Railway
+##  Railway Deployment
+ 
+### 9.1 การตั้งค่า Environment Variables บน Railway
+ 
+**Auth Service**
+```
+Root Directory: auth-service
+DATABASE_URL=${{auth-db.DATABASE_URL}}
+JWT_SECRET=your-shared-jwt-secret-here
+JWT_EXPIRES_IN=1h
+PORT=3001
+NODE_ENV=production
+```
+ 
+**Task Service**
+```
+Root Directory: task-service
+DATABASE_URL=${{task-db.DATABASE_URL}}
+JWT_SECRET=your-shared-jwt-secret-here
+PORT=3002
+NODE_ENV=production
+```
+ 
+**User Service**
+```
+Root Directory: user-service
+DATABASE_URL=${{user-db.DATABASE_URL}}
+JWT_SECRET=your-shared-jwt-secret-here
+PORT=3003
+NODE_ENV=production
+```
+ 
+**Frontend**
+```
+Root Directory: frontend
+Start Command: npm start
+PORT=8080
+AUTH_URL=https://auth-service-production.up.railway.app
+TASK_URL=https://task-service-production.up.railway.app
+USER_URL=https://user-service-production.up.railway.app
+```
+ 
+> Frontend อ่านค่า URL จาก environment แล้วสร้าง `config.js` ตอน runtime ให้เอง จึงไม่ต้องแก้ URL hardcode ในไฟล์ก่อน deploy
+ 
+### 9.2 ตัวอย่าง config.js ที่ได้
+ 
+```javascript
+window.APP_CONFIG = {
+  AUTH_URL: 'https://auth-service-production.up.railway.app',
+  TASK_URL: 'https://task-service-production.up.railway.app',
+  USER_URL:  'https://user-service-production.up.railway.app'
+};
+```
+ 
+---
 
 **Auth Service**
 ```
