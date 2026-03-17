@@ -229,38 +229,28 @@ curl http://localhost:3003/api/users/me -H "Authorization: Bearer $TOKEN"
 
 ---
 
-## 9. API Summary
-
-### 🔐 Auth Service — `localhost:3001`
-
-| Method | Endpoint | Description | Auth |
+Gateway Strategy
+ 
+นักศึกษาต้องเลือก 1 วิธี — กลุ่มนี้เลือก **Option A**
+ 
+| Option | วิธี | ความยาก | แนะนำ |
 |---|---|---|:---:|
-| POST | `/api/auth/register` | สมัครสมาชิก | ❌ |
-| POST | `/api/auth/login` | เข้าสู่ระบบ รับ JWT Token | ❌ |
-| GET | `/api/auth/verify` | ตรวจสอบ Token | ✅ |
-| GET | `/api/auth/me` | ดูข้อมูล user ปัจจุบัน | ✅ |
-| GET | `/api/auth/health` | Health check | ❌ |
-
-### ✅ Task Service — `localhost:3002`
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|:---:|
-| GET | `/api/tasks/health` | Health check | ❌ |
-| GET | `/api/tasks` | ดึง Task ทั้งหมด | ✅ |
-| POST | `/api/tasks` | สร้าง Task ใหม่ | ✅ |
-| PUT | `/api/tasks/:id` | แก้ไข Task | ✅ |
-| DELETE | `/api/tasks/:id` | ลบ Task | ✅ |
-
-### 👤 User Service — `localhost:3003`
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|:---:|
-| GET | `/api/users/health` | Health check | ❌ |
-| GET | `/api/users/me` | ดูข้อมูล profile ตัวเอง | ✅ |
-| PUT | `/api/users/me` | แก้ไข profile ตัวเอง | ✅ |
-| GET | `/api/users` | ดู users ทั้งหมด (admin only) | ✅ 👑 |
-
----
+| **A** | Frontend เรียก URL ของแต่ละ service โดยตรงผ่าน `config.js` | ง่าย | ✅ |
+| B | Deploy Nginx เป็น 1 service บน Railway เป็น single entry point | ปานกลาง | |
+| C | ทำ API Gateway ด้วย Express ทำ proxy ไปแต่ละ service | ปานกลาง | |
+ 
+**เหตุผลที่เลือก Option A:**
+- Deploy ง่ายที่สุด ลดขั้นตอนการตั้งค่าระหว่างสอบ
+- Frontend อ่าน URL จาก `window.APP_CONFIG` ที่ inject ตอน runtime ทำให้ใช้ image เดิมได้ทั้ง local และ Railway
+- เหมาะกับระบบ 3 services ที่มี endpoint ชัดเจนและไม่ซับซ้อน
+ 
+```javascript
+// frontend/public/config.js (inject ตอน container start)
+window.APP_CONFIG = {
+  AUTH_URL: 'https://auth-service-production.up.railway.app',
+  TASK_URL: 'https://task-service-production.up.railway.app',
+  USER_URL: 'https://user-service-production.up.railway.app'
+};
 
 ## 10. Railway Deployment
 
@@ -326,8 +316,7 @@ window.APP_CONFIG = {
 
 และรายงานรายบุคคลของสมาชิกแต่ละคนอยู่ในไฟล์:
 
-📄 [`INDIVIDUAL_REPORT_6743210062-5.md`](./INDIVIDUAL_REPORT_6743210062-5.md) — นายภาคิน กันทะวงค์
-📄 [`INDIVIDUAL_REPORT_6743210019-5.md`](./INDIVIDUAL_REPORT_6743210019-5.md) — นายธวัชชัย สุหงษา
+📄 [`INDIVIDUAL_REPORT_6743210062-5.md`](./INDIVIDUAL_REPORT_TEAM8.md) 
 
 ---
 
